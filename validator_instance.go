@@ -381,7 +381,7 @@ func (v *Validate) Var(field interface{}, tag string) (err error) {
 		// isn't parsed again.
 		ctag, ok = v.tagCache.Get(tag)
 		if !ok {
-			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false, "")
 			v.tagCache.Set(tag, ctag)
 		}
 	}
@@ -433,7 +433,7 @@ func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string
 		// isn't parsed again.
 		ctag, ok = v.tagCache.Get(tag)
 		if !ok {
-			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false, "")
 			v.tagCache.Set(tag, ctag)
 		}
 	}

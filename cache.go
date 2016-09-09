@@ -86,6 +86,7 @@ type cField struct {
 }
 
 type cTag struct {
+	sectionTag     string
 	tag            string
 	aliasTag       string
 	actualAliasTag string
@@ -150,7 +151,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 		// and so only struct level caching can be used instead of combined with Field tag caching
 
 		if len(tag) > 0 {
-			ctag, _ = v.parseFieldTagsRecursive(tag, fld.Name, "", false)
+			ctag, _ = v.parseFieldTagsRecursive(tag, fld.Name, "", false, "")
 		} else {
 			// even if field doesn't have validations need cTag for traversing to potential inner/nested
 			// elements of the field.
@@ -171,7 +172,7 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	return cs
 }
 
-func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool) (firstCtag *cTag, current *cTag) {
+func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias string, hasAlias bool, sectionTag string) (firstCtag *cTag, current *cTag) {
 
 	var t string
 	var ok bool
@@ -190,9 +191,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		if tagsVal, found := v.aliases[t]; found {
 
 			if i == 0 {
-				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+				firstCtag, current = v.parseFieldTagsRecursive(tagsVal, fieldName, t, true, sectionTag)
 			} else {
-				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
+				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true, sectionTag)
 				current.next, current = next, curr
 
 			}
@@ -201,10 +202,10 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		}
 
 		if i == 0 {
-			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
+			current = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, sectionTag: sectionTag}
 			firstCtag = current
 		} else {
-			current.next = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true}
+			current.next = &cTag{aliasTag: alias, hasAlias: hasAlias, hasTag: true, sectionTag: sectionTag}
 			current = current.next
 		}
 
@@ -233,7 +234,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 			}
 
-			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, t, false)
+			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false, keysTag)
 			continue
 
 		case endKeysTag:
@@ -276,7 +277,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 
 				if j > 0 {
-					current.next = &cTag{aliasTag: alias, actualAliasTag: current.actualAliasTag, hasAlias: hasAlias, hasTag: true}
+					current.next = &cTag{aliasTag: alias, actualAliasTag: current.actualAliasTag, hasAlias: hasAlias, hasTag: true, sectionTag: sectionTag}
 					current = current.next
 				}
 

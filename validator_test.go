@@ -121,7 +121,7 @@ func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField
 	EqualSkip(t, 2, fe.Tag(), expectedTag)
 }
 
-func AssertDeepError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag, actualTag string) {
+func AssertDeepError(t *testing.T, err error, nsKey, structNsKey, field, structField, sectionTag, expectedTag, actualTag string) {
 
 	errs := err.(ValidationErrors)
 
@@ -129,7 +129,7 @@ func AssertDeepError(t *testing.T, err error, nsKey, structNsKey, field, structF
 	var fe FieldError
 
 	for i := 0; i < len(errs); i++ {
-		if errs[i].Namespace() == nsKey && errs[i].StructNamespace() == structNsKey && errs[i].Tag() == expectedTag && errs[i].ActualTag() == actualTag {
+		if errs[i].Namespace() == nsKey && errs[i].StructNamespace() == structNsKey && errs[i].SectionTag() == sectionTag && errs[i].Tag() == expectedTag && errs[i].ActualTag() == actualTag {
 			found = true
 			fe = errs[i]
 			break
@@ -5520,7 +5520,7 @@ func TestOrTag(t *testing.T) {
 	s = "this ain't right"
 	errs = validate.Var(s, "rgb|rgba|len=10")
 	NotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgb|rgba|len")
+	AssertError(t, errs, "", "", "", "", "rgb|rgba|len=10")
 
 	s = "this is right"
 	errs = validate.Var(s, "rgb|rgba|len=13")
@@ -6472,10 +6472,10 @@ func TestKeys(t *testing.T) {
 
 	Equal(t, len(errs), 4)
 
-	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "keys", "eq")
-	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
-	AssertDeepError(t, errs, "Test.Test2[10]", "Test.Test2[10]", "Test2[10]", "Test2[10]", "keys", "eq")
-	AssertDeepError(t, errs, "Test.Test2[10]", "Test.Test2[10]", "Test2[10]", "Test2[10]", "eq", "eq")
+	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "keys", "eq", "eq")
+	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "", "eq", "eq")
+	AssertDeepError(t, errs, "Test.Test2[10]", "Test.Test2[10]", "Test2[10]", "Test2[10]", "keys", "eq", "eq")
+	AssertDeepError(t, errs, "Test.Test2[10]", "Test.Test2[10]", "Test2[10]", "Test2[10]", "", "eq", "eq")
 
 	type Test2 struct {
 		NestedKeys map[[1]string]string `validate:"gt=0,keys,dive,eq=innertestkey,endkeys,dive,eq=outertestval"`
@@ -6503,8 +6503,8 @@ func TestKeys(t *testing.T) {
 	errs = err.(ValidationErrors)
 
 	Equal(t, len(errs), 2)
-	AssertDeepError(t, errs, "Test2.NestedKeys[[badtestkey]][0]", "Test2.NestedKeys[[badtestkey]][0]", "NestedKeys[[badtestkey]][0]", "NestedKeys[[badtestkey]][0]", "keys", "eq")
-	AssertDeepError(t, errs, "Test2.NestedKeys[[badtestkey]]", "Test2.NestedKeys[[badtestkey]]", "NestedKeys[[badtestkey]]", "NestedKeys[[badtestkey]]", "eq", "eq")
+	AssertDeepError(t, errs, "Test2.NestedKeys[[badtestkey]][0]", "Test2.NestedKeys[[badtestkey]][0]", "NestedKeys[[badtestkey]][0]", "NestedKeys[[badtestkey]][0]", "keys", "eq", "eq")
+	AssertDeepError(t, errs, "Test2.NestedKeys[[badtestkey]]", "Test2.NestedKeys[[badtestkey]]", "NestedKeys[[badtestkey]]", "NestedKeys[[badtestkey]]", "", "eq", "eq")
 
 	// test bad tag definitions
 
@@ -6530,10 +6530,10 @@ func TestKeys(t *testing.T) {
 
 	Equal(t, len(errs), 4)
 
-	AssertDeepError(t, errs, "Test.test1[badtestkey]", "Test.Test1[badtestkey]", "test1[badtestkey]", "Test1[badtestkey]", "keys", "eq")
-	AssertDeepError(t, errs, "Test.test1[badtestkey]", "Test.Test1[badtestkey]", "test1[badtestkey]", "Test1[badtestkey]", "eq", "eq")
-	AssertDeepError(t, errs, "Test.test2[10]", "Test.Test2[10]", "test2[10]", "Test2[10]", "keys", "eq")
-	AssertDeepError(t, errs, "Test.test2[10]", "Test.Test2[10]", "test2[10]", "Test2[10]", "eq", "eq")
+	AssertDeepError(t, errs, "Test.test1[badtestkey]", "Test.Test1[badtestkey]", "test1[badtestkey]", "Test1[badtestkey]", "keys", "eq", "eq")
+	AssertDeepError(t, errs, "Test.test1[badtestkey]", "Test.Test1[badtestkey]", "test1[badtestkey]", "Test1[badtestkey]", "", "eq", "eq")
+	AssertDeepError(t, errs, "Test.test2[10]", "Test.Test2[10]", "test2[10]", "Test2[10]", "keys", "eq", "eq")
+	AssertDeepError(t, errs, "Test.test2[10]", "Test.Test2[10]", "test2[10]", "Test2[10]", "", "eq", "eq")
 }
 
 // Thanks @adrian-sgn specific test for your specific scenario
@@ -6572,16 +6572,16 @@ func TestKeysCustomValidation(t *testing.T) {
 	errs := err.(ValidationErrors)
 	Equal(t, len(errs), 4)
 
-	AssertDeepError(t, errs, "TestMapStructPtr.Label[xx]", "TestMapStructPtr.Label[xx]", "Label[xx]", "Label[xx]", "keys", "lang_code")
-	AssertDeepError(t, errs, "TestMapStructPtr.Label[pt]", "TestMapStructPtr.Label[pt]", "Label[pt]", "Label[pt]", "required", "required")
-	AssertDeepError(t, errs, "TestMapStructPtr.Label[xxx]", "TestMapStructPtr.Label[xxx]", "Label[xxx]", "Label[xxx]", "keys", "lang_code")
-	AssertDeepError(t, errs, "TestMapStructPtr.Label[xxx]", "TestMapStructPtr.Label[xxx]", "Label[xxx]", "Label[xxx]", "required", "required")
+	AssertDeepError(t, errs, "TestMapStructPtr.Label[xx]", "TestMapStructPtr.Label[xx]", "Label[xx]", "Label[xx]", "keys", "lang_code", "lang_code")
+	AssertDeepError(t, errs, "TestMapStructPtr.Label[pt]", "TestMapStructPtr.Label[pt]", "Label[pt]", "Label[pt]", "", "required", "required")
+	AssertDeepError(t, errs, "TestMapStructPtr.Label[xxx]", "TestMapStructPtr.Label[xxx]", "Label[xxx]", "Label[xxx]", "keys", "lang_code", "lang_code")
+	AssertDeepError(t, errs, "TestMapStructPtr.Label[xxx]", "TestMapStructPtr.Label[xxx]", "Label[xxx]", "Label[xxx]", "", "required", "required")
 
 	// find specific error
 
 	var e FieldError
 	for _, e = range errs {
-		if e.Namespace() == "TestMapStructPtr.Label[xxx]" && e.Tag() == "keys" {
+		if e.Namespace() == "TestMapStructPtr.Label[xxx]" && e.SectionTag() == "keys" {
 			break
 		}
 	}
@@ -6597,4 +6597,70 @@ func TestKeysCustomValidation(t *testing.T) {
 
 	Equal(t, e.Param(), "")
 	Equal(t, e.Value().(string), "")
+}
+
+func TestKeyOrs(t *testing.T) {
+
+	type Test struct {
+		Test1 map[string]string `validate:"gt=0,keys,eq=testkey|eq=testkeyok,endkeys,dive,eq=testval" json:"test1"`
+	}
+
+	var tst Test
+
+	validate := New()
+	err := validate.Struct(tst)
+	NotEqual(t, err, nil)
+	Equal(t, len(err.(ValidationErrors)), 1)
+	AssertError(t, err.(ValidationErrors), "Test.Test1", "Test.Test1", "Test1", "Test1", "gt")
+
+	tst.Test1 = map[string]string{
+		"testkey": "testval",
+	}
+
+	err = validate.Struct(tst)
+	Equal(t, err, nil)
+
+	tst.Test1["badtestkey"] = "badtestval"
+
+	err = validate.Struct(tst)
+	NotEqual(t, err, nil)
+
+	errs := err.(ValidationErrors)
+
+	Equal(t, len(errs), 2)
+
+	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "keys", "eq=testkey|eq=testkeyok", "eq=testkey|eq=testkeyok")
+	AssertDeepError(t, errs, "Test.Test1[badtestkey]", "Test.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "", "eq", "eq")
+
+	validate.RegisterAlias("okkey", "eq=testkey|eq=testkeyok")
+
+	type Test2 struct {
+		Test1 map[string]string `validate:"gt=0,keys,okkey,endkeys,dive,eq=testval" json:"test1"`
+	}
+
+	var tst2 Test2
+
+	err = validate.Struct(tst2)
+	NotEqual(t, err, nil)
+	Equal(t, len(err.(ValidationErrors)), 1)
+	AssertError(t, err.(ValidationErrors), "Test2.Test1", "Test2.Test1", "Test1", "Test1", "gt")
+
+	tst2.Test1 = map[string]string{
+		"testkey": "testval",
+	}
+
+	err = validate.Struct(tst2)
+	Equal(t, err, nil)
+
+	tst2.Test1["badtestkey"] = "badtestval"
+
+	err = validate.Struct(tst2)
+	NotEqual(t, err, nil)
+
+	errs = err.(ValidationErrors)
+
+	Equal(t, len(errs), 2)
+
+	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "keys", "okkey", "eq=testkey|eq=testkeyok")
+	AssertDeepError(t, errs, "Test2.Test1[badtestkey]", "Test2.Test1[badtestkey]", "Test1[badtestkey]", "Test1[badtestkey]", "", "eq", "eq")
 }

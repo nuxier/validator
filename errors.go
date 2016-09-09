@@ -54,6 +54,15 @@ func (ve ValidationErrors) Error() string {
 // FieldError contains all functions to get error details
 type FieldError interface {
 
+	// returns the validation tag section that failed, most of the time it
+	// will be blank, however will be set if the validation was for map keys.
+	// This is used to distinguish different validations sections, currently only
+	// 'keys' will be non-blank
+	//
+	// eg. "keys,eq=testkey,endkeys"
+	// will return "keys"
+	SectionTag() string
+
 	// returns the validation tag that failed. if the
 	// validation was an alias, this will return the
 	// alias name and not the underlying tag that failed.
@@ -128,6 +137,7 @@ var _ error = new(fieldError)
 // with other properties that may be needed for error message creation
 // it complies with the FieldError interface
 type fieldError struct {
+	sectionTag     string
 	tag            string
 	actualTag      string
 	ns             string
@@ -138,6 +148,12 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+}
+
+// Tag returns the validations section tag tag that failed.
+// currently only valid for 'keys' tag
+func (fe *fieldError) SectionTag() string {
+	return fe.sectionTag
 }
 
 // Tag returns the validation tag that failed.

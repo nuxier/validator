@@ -113,6 +113,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 				v.errs = append(v.errs,
 					&fieldError{
+						sectionTag:     ct.sectionTag,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
 						ns:             v.str1,
@@ -129,6 +130,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 
 			v.errs = append(v.errs,
 				&fieldError{
+					sectionTag:     ct.sectionTag,
 					tag:            ct.aliasTag,
 					actualTag:      ct.tag,
 					ns:             v.str1,
@@ -352,7 +354,13 @@ OUTER:
 				v.misc = append(v.misc, '|')
 				v.misc = append(v.misc, ct.tag...)
 
-				if ct.next == nil {
+				if len(ct.param) > 0 {
+					v.misc = append(v.misc, '=')
+					v.misc = append(v.misc, ct.param...)
+				}
+
+				if ct.next == nil || ct.next.typeof != typeOr { // ct.typeof != typeOr covers 'endkeys' and any other future types
+
 					// if we get here, no valid 'or' value and no more tags
 
 					v.str1 = string(append(ns, cf.altName...))
@@ -367,6 +375,7 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
+								sectionTag:     ct.sectionTag,
 								tag:            ct.aliasTag,
 								actualTag:      ct.actualAliasTag,
 								ns:             v.str1,
@@ -386,6 +395,7 @@ OUTER:
 
 						v.errs = append(v.errs,
 							&fieldError{
+								sectionTag:     ct.sectionTag,
 								tag:            tVal,
 								actualTag:      tVal,
 								ns:             v.str1,
@@ -425,6 +435,7 @@ OUTER:
 
 				v.errs = append(v.errs,
 					&fieldError{
+						sectionTag:     ct.sectionTag,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
 						ns:             v.str1,
