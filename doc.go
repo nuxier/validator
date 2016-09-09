@@ -225,6 +225,30 @@ Example #2
 	// []string will be spared validation
 	// required will be applied to string
 
+keys & endkeys
+
+These are to be used together and tells the validator that anything between
+'keys' and 'endkeys' applies to the keys of a map and not the values; think
+of it like the 'dive' tag, but for map keys instead of values.
+Multidimensional nesting is also supported, each level you wish to validate will
+require another 'keys' and 'endkeys' tag. These tags are only valid for maps.
+
+	Usage: keys,othertagvalidation(s),endkeys
+
+Example #1
+
+	map[string]string with validation tag "gt=0,keys,eg=1|eq=2,endkeys,dive,required"
+	// gt=0 will be applied to the map itself
+	// eg=1|eq=2 will be applied to the map keys
+	// required will be applied to map values
+
+Example #2
+
+	map[[2]string]string with validation tag "gt=0,keys,dive,eq=1|eq=2,endkeys,dive,required"
+	// gt=0 will be applied to the map itself
+	// eg=1|eq=2 will be applied to each array element in the the map keys
+	// required will be applied to map values
+
 Required
 
 This validates that the value is not the data types default zero value.

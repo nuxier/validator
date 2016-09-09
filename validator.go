@@ -201,6 +201,52 @@ OUTER:
 			ct = ct.next
 			continue
 
+		case typeEndKeys:
+			return
+
+		case typeKeys:
+
+			// traverse map here
+			// or panic ;)
+			switch kind {
+
+			case reflect.Map:
+
+				var pv string
+				reusableCF := &cField{}
+
+				for _, key := range current.MapKeys() {
+
+					pv = fmt.Sprintf("%v", key.Interface())
+
+					v.misc = append(v.misc[0:0], cf.name...)
+					v.misc = append(v.misc, '[')
+					v.misc = append(v.misc, pv...)
+					v.misc = append(v.misc, ']')
+
+					reusableCF.name = string(v.misc)
+
+					if cf.namesEqual {
+						reusableCF.altName = reusableCF.name
+					} else {
+						v.misc = append(v.misc[0:0], cf.altName...)
+						v.misc = append(v.misc, '[')
+						v.misc = append(v.misc, pv...)
+						v.misc = append(v.misc, ']')
+
+						reusableCF.altName = string(v.misc)
+					}
+
+					v.traverseField(parent, key, ns, structNs, reusableCF, ct.keys)
+				}
+
+			default:
+				panic("keys error! can't dive into map keys on a non map")
+			}
+
+			ct = ct.next
+			continue
+
 		case typeDive:
 
 			ct = ct.next
@@ -270,8 +316,6 @@ OUTER:
 				}
 
 			default:
-				// throw error, if not a slice or map then should not have gotten here
-				// bad dive tag
 				panic("dive error! can't dive on a non slice or map")
 			}
 

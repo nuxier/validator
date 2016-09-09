@@ -21,6 +21,8 @@ const (
 	omitempty          = "omitempty"
 	skipValidationTag  = "-"
 	diveTag            = "dive"
+	keysTag            = "keys"
+	endKeysTag         = "endkeys"
 	namespaceSeparator = "."
 	leftBracket        = "["
 	rightBracket       = "]"

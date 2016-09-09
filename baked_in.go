@@ -20,6 +20,8 @@ type Func func(fl FieldLevel) bool
 var (
 	restrictedTags = map[string]struct{}{
 		diveTag:           {},
+		keysTag:           {},
+		endKeysTag:        {},
 		structOnlyTag:     {},
 		omitempty:         {},
 		skipValidationTag: {},
